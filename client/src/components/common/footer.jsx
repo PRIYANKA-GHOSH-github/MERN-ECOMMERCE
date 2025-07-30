@@ -49,12 +49,12 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-3">ABOUT</h4>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li>Our Story</li>
-              <li>OLIPOP Digest</li>
-              <li>Ingredients</li>
-              <li>Digestive Health</li>
+              <li>collections</li>
+              <li>Trending products</li>
+              <li>New arrival Products</li>
+              <li>featured Products</li>
               <li>Wholesale</li>
-              <li>Press</li>
+              <li>sitemap</li>
               <li>Careers</li>
             </ul>
           </div>

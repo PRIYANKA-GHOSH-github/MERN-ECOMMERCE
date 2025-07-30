@@ -12,6 +12,8 @@ import { Label } from "../ui/label";
 import StarRatingComponent from "../common/star-rating";
 import { useEffect, useState } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice";
+import axios from "axios";
+import { formatRupee } from "../../lib/currency";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [reviewMsg, setReviewMsg] = useState("");
@@ -93,6 +95,19 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   }
 
   useEffect(() => {
+    if (open && productDetails?._id) {
+      axios.post(
+        `http://localhost:5000/api/shop/products/${productDetails._id}/viewed`,
+        {},
+        { withCredentials: true }
+      ).catch((err) => {
+        // Optionally handle error
+        console.error("Failed to record recently viewed product", err);
+      });
+    }
+  }, [open, productDetails]);
+
+  useEffect(() => {
     if (productDetails !== null) dispatch(getReviews(productDetails?._id));
   }, [productDetails]);
 
@@ -129,11 +144,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 productDetails?.salePrice > 0 ? "line-through" : ""
               }`}
             >
-              ${productDetails?.price}
+              {formatRupee(productDetails?.price)}
             </p>
             {productDetails?.salePrice > 0 ? (
               <p className="text-2xl font-bold text-muted-foreground">
-                ${productDetails?.salePrice}
+                {formatRupee(productDetails?.salePrice)}
               </p>
             ) : null}
           </div>

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import bannerOne from "../../assets/banner-1.webp";
 import bannerTwo from "../../assets/banner-2.webp";
@@ -36,6 +37,7 @@ import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/components/ui/use-toast";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { setFeatureImageList } from "@/store/common-slice";
+import axios from "axios";
 
 const categoriesWithIcon = [
   { id: "men", label: "Men", icon: ShirtIcon },
@@ -56,6 +58,7 @@ const brandsWithIcon = [
   { id: "h&m", label: "H&M", icon: Heater },
 ];
 function ShoppingHome() {
+  const featureSectionRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
@@ -256,7 +259,12 @@ function ShoppingHome() {
     </div>
   </div>
 
-  <Button className="bg-[#12362f] hover:bg-green-700 text-white rounded-md">
+    <Button
+    className="bg-[#12362f] hover:bg-green-700 text-white rounded-md"
+    onClick={() =>
+      featureSectionRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  >
     BUY NOW
   </Button>
 </div>
@@ -308,7 +316,8 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12">
+      <RecentlyViewed />
+      <section className="py-12" ref={featureSectionRef}>
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
             Feature Products
@@ -332,6 +341,40 @@ function ShoppingHome() {
         productDetails={productDetails}
       />
     </div>
+  );
+}
+
+function RecentlyViewed() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/shop/products/recently-viewed", {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.success) setProducts(res.data.data);
+      });
+  }, []);
+
+  if (!products.length) return null;
+
+  return (
+    <section className="py-12 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8">Recently Viewed Products</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ShoppingProductTile
+              key={product._id}
+              product={product}
+              handleGetProductDetails={() => {}}
+              handleAddtoCart={() => {}}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

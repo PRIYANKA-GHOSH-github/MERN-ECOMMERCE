@@ -1,4 +1,5 @@
 const Product = require("../../models/Product");
+const User = require("../../models/User");
 
 const getFilteredProducts = async (req, res) => {
   try {
@@ -79,4 +80,49 @@ const getProductDetails = async (req, res) => {
   }
 };
 
-module.exports = { getFilteredProducts, getProductDetails };
+// Add a product to the user's recently viewed list
+const addRecentlyViewedProduct = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id: productId } = req.params;
+    const MAX_RECENT = 20;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Remove if already exists
+    user.recentlyViewed = user.recentlyViewed.filter(
+      (pid) => pid.toString() !== productId
+    );
+    // Add to front
+    user.recentlyViewed.unshift(productId);
+    // Limit array size to 4
+    if (user.recentlyViewed.length > 4) {
+      user.recentlyViewed = user.recentlyViewed.slice(0, 4);
+    }
+    await user.save();
+    res.status(200).json({ success: true, message: "Product added to recently viewed" });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, message: "Some error occured" });
+  }
+};
+
+// Get the user's recently viewed products
+const getRecentlyViewedProducts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate("recentlyViewed");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.status(200).json({ success: true, data: user.recentlyViewed });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, message: "Some error occured" });
+  }
+};
+
+module.exports = { getFilteredProducts, getProductDetails, addRecentlyViewedProduct, getRecentlyViewedProducts };
