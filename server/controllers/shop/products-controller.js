@@ -48,10 +48,10 @@ const getFilteredProducts = async (req, res) => {
       data: products,
     });
   } catch (e) {
-    console.log(error);
+    console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };
@@ -72,10 +72,10 @@ const getProductDetails = async (req, res) => {
       data: product,
     });
   } catch (e) {
-    console.log(error);
+    console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };
@@ -106,7 +106,7 @@ const addRecentlyViewedProduct = async (req, res) => {
     res.status(200).json({ success: true, message: "Product added to recently viewed" });
   } catch (e) {
     console.log(e);
-    res.status(500).json({ success: false, message: "Some error occured" });
+    res.status(500).json({ success: false, message: "Some error occurred" });
   }
 };
 
@@ -121,8 +121,44 @@ const getRecentlyViewedProducts = async (req, res) => {
     res.status(200).json({ success: true, data: user.recentlyViewed });
   } catch (e) {
     console.log(e);
-    res.status(500).json({ success: false, message: "Some error occured" });
+    res.status(500).json({ success: false, message: "Some error occurred" });
   }
 };
 
-module.exports = { getFilteredProducts, getProductDetails, addRecentlyViewedProduct, getRecentlyViewedProducts };
+// Get product recommendations based on category and popularity
+const getProductRecommendations = async (req, res) => {
+  try {
+    const { category, limit = 6 } = req.query;
+    
+    let filters = {
+      addToCartCount: { $gt: 0 } // Only show products that have been added to cart at least once
+    };
+    
+    if (category) {
+      filters.category = category;
+      console.log("Filtering recommendations by category:", category);
+    }
+    
+    console.log("Recommendation filters:", filters);
+    
+    const recommendations = await Product.find(filters)
+      .sort({ addToCartCount: -1 })
+      .limit(parseInt(limit))
+      .select('image title price salePrice addToCartCount category totalStock');
+    
+    console.log(`Found ${recommendations.length} recommendations for category: ${category || 'all'}`);
+    
+    res.status(200).json({
+      success: true,
+      data: recommendations,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "Some error occurred",
+    });
+  }
+};
+
+module.exports = { getFilteredProducts, getProductDetails, addRecentlyViewedProduct, getRecentlyViewedProducts, getProductRecommendations };

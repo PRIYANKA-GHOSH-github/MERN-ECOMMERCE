@@ -33,6 +33,9 @@ const addToCart = async (req, res) => {
 
     if (findCurrentProductIndex === -1) {
       cart.items.push({ productId, quantity });
+      // Increment addToCartCount when product is first added to cart
+      product.addToCartCount += 1;
+      await product.save();
     } else {
       cart.items[findCurrentProductIndex].quantity += quantity;
     }

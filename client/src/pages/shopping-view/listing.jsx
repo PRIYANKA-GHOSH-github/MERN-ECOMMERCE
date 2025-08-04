@@ -1,6 +1,7 @@
 import ProductFilter from "@/components/shopping-view/filter";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import ProductRecommendations from "@/components/shopping-view/product-recommendations";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +17,7 @@ import {
   fetchAllFilteredProducts,
   fetchProductDetails,
 } from "@/store/shop/products-slice";
+import { fetchProductRecommendations, clearRecommendations } from "@/store/shop/recommendations-slice";
 import { ArrowUpDownIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -43,6 +45,9 @@ function ShoppingListing() {
     (state) => state.shopProducts
   );
   const { cartItems } = useSelector((state) => state.shopCart);
+  const { recommendations, isLoading: recommendationsLoading } = useSelector(
+    (state) => state.shopRecommendations
+  );
   const { user } = useSelector((state) => state.auth);
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState(null);
@@ -143,6 +148,28 @@ function ShoppingListing() {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
+  // Fetch recommendations when category changes
+  useEffect(() => {
+    // Check if brand filters are applied
+    const hasBrandFilters = filters.brand && filters.brand.length > 0;
+    
+    // Don't show recommendations when browsing by brand
+    if (hasBrandFilters) {
+      console.log("Brand filters applied - hiding recommendations");
+      dispatch(clearRecommendations());
+      return;
+    }
+    
+    if (categorySearchParam) {
+      console.log("Fetching recommendations for category:", categorySearchParam);
+      dispatch(fetchProductRecommendations({ category: categorySearchParam }));
+    } else {
+      // If no category is selected, fetch general recommendations
+      console.log("Fetching general recommendations");
+      dispatch(fetchProductRecommendations({ limit: 6 }));
+    }
+  }, [dispatch, categorySearchParam, filters]);
+
   console.log(productList, "productListproductListproductList");
 
   return (
@@ -198,6 +225,28 @@ function ShoppingListing() {
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
       />
+      
+      {/* Recommendations Section */}
+      {(() => {
+        // Check if brand filters are applied
+        const hasBrandFilters = filters.brand && filters.brand.length > 0;
+        
+        // Don't show recommendations when browsing by brand
+        if (hasBrandFilters) {
+          return null;
+        }
+        
+        return (recommendationsLoading || (recommendations && recommendations.length > 0)) && (
+          <div className="md:col-span-2">
+            <ProductRecommendations
+              recommendations={recommendations}
+              isLoading={recommendationsLoading}
+              handleGetProductDetails={handleGetProductDetails}
+              handleAddtoCart={handleAddtoCart}
+            />
+          </div>
+        );
+      })()}
     </div>
   );
 }

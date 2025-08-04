@@ -2,9 +2,11 @@ import Address from "@/components/shopping-view/address";
 import img from "../../assets/account.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
+import ProductRecommendations from "@/components/shopping-view/product-recommendations";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createNewOrder } from "@/store/shop/order-slice";
+import { fetchProductRecommendations } from "@/store/shop/recommendations-slice";
 import { Navigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { formatRupee } from "../../lib/currency";
@@ -13,12 +15,20 @@ function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
+  const { recommendations, isLoading: recommendationsLoading } = useSelector(
+    (state) => state.shopRecommendations
+  );
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymemntStart] = useState(false);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
   console.log(currentSelectedAddress, "cartItems");
+
+  // Fetch general recommendations for checkout page
+  useEffect(() => {
+    dispatch(fetchProductRecommendations({ limit: 6 }));
+  }, [dispatch]);
 
   const totalCartAmount =
     cartItems && cartItems.items && cartItems.items.length > 0
@@ -32,6 +42,17 @@ function ShoppingCheckout() {
           0
         )
       : 0;
+
+  // Handler functions for recommendations
+  function handleGetProductDetails(productId) {
+    // Navigate to product details or open modal
+    console.log("Navigate to product:", productId);
+  }
+
+  function handleAddtoCart(productId, totalStock) {
+    // Add to cart logic
+    console.log("Add to cart:", productId);
+  }
 
   function handleInitiatePaypalPayment() {
     if (cartItems.length === 0) {
@@ -127,6 +148,18 @@ function ShoppingCheckout() {
           </div>
         </div>
       </div>
+      
+      {/* Recommendations Section */}
+      {(recommendationsLoading || (recommendations && recommendations.length > 0)) && (
+        <div className="mt-8">
+          <ProductRecommendations
+            recommendations={recommendations}
+            isLoading={recommendationsLoading}
+            handleGetProductDetails={handleGetProductDetails}
+            handleAddtoCart={handleAddtoCart}
+          />
+        </div>
+      )}
     </div>
   );
 }

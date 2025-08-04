@@ -38,6 +38,7 @@ import { useToast } from "@/components/ui/use-toast";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { setFeatureImageList } from "@/store/common-slice";
 import axios from "axios";
+import { API_BASE_URL } from "@/config";
 
 const categoriesWithIcon = [
   { id: "men", label: "Men", icon: ShirtIcon },
@@ -57,6 +58,7 @@ const brandsWithIcon = [
   { id: "zara", label: "Zara", icon: Images },
   { id: "h&m", label: "H&M", icon: Heater },
 ];
+
 function ShoppingHome() {
   const featureSectionRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -117,10 +119,12 @@ function ShoppingHome() {
   }
 
   function handleGetProductDetails(getCurrentProductId) {
+    console.log("Getting product details for:", getCurrentProductId);
     dispatch(fetchProductDetails(getCurrentProductId));
   }
 
-  function handleAddtoCart(getCurrentProductId) {
+  function handleAddtoCart(getCurrentProductId, totalStock) {
+    console.log("Adding to cart:", getCurrentProductId, "with stock:", totalStock);
     dispatch(
       addToCart({
         userId: user?.id,
@@ -316,7 +320,10 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <RecentlyViewed />
+      <RecentlyViewed 
+        handleGetProductDetails={handleGetProductDetails}
+        handleAddtoCart={handleAddtoCart}
+      />
       <section className="py-12" ref={featureSectionRef}>
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
@@ -344,20 +351,68 @@ function ShoppingHome() {
   );
 }
 
-function RecentlyViewed() {
+function RecentlyViewed({ handleGetProductDetails, handleAddtoCart }) {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+    
     axios
-      .get("http://localhost:5000/api/shop/products/recently-viewed", {
+      .get(`${API_BASE_URL}/api/shop/products/recently-viewed`, {
         withCredentials: true,
       })
       .then((res) => {
-        if (res.data.success) setProducts(res.data.data);
+        console.log("Recently viewed response:", res.data);
+        if (res.data.success) {
+          setProducts(res.data.data);
+        } else {
+          setError(res.data.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Recently viewed error:", err);
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
-  if (!products.length) return null;
+  if (loading) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Recently Viewed Products</h2>
+          <div className="text-center">Loading recently viewed products...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Recently Viewed Products</h2>
+          <div className="text-center text-red-500">Error: {error}</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!products.length) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">Recently Viewed Products</h2>
+          <div className="text-center text-gray-500">No recently viewed products</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 bg-gray-50">
@@ -368,8 +423,8 @@ function RecentlyViewed() {
             <ShoppingProductTile
               key={product._id}
               product={product}
-              handleGetProductDetails={() => {}}
-              handleAddtoCart={() => {}}
+              handleGetProductDetails={handleGetProductDetails}
+              handleAddtoCart={handleAddtoCart}
             />
           ))}
         </div>

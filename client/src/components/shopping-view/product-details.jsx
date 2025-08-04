@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice";
 import axios from "axios";
 import { formatRupee } from "../../lib/currency";
+import { API_BASE_URL } from "@/config";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [reviewMsg, setReviewMsg] = useState("");
@@ -96,11 +97,14 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   useEffect(() => {
     if (open && productDetails?._id) {
+      console.log("Recording recently viewed product:", productDetails._id);
       axios.post(
-        `http://localhost:5000/api/shop/products/${productDetails._id}/viewed`,
+        `${API_BASE_URL}/api/shop/products/${productDetails._id}/viewed`,
         {},
         { withCredentials: true }
-      ).catch((err) => {
+      ).then((res) => {
+        console.log("Recently viewed recorded successfully:", res.data);
+      }).catch((err) => {
         // Optionally handle error
         console.error("Failed to record recently viewed product", err);
       });

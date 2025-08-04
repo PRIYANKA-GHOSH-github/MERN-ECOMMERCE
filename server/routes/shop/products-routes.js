@@ -5,6 +5,7 @@ const {
   getProductDetails,
   addRecentlyViewedProduct,
   getRecentlyViewedProducts,
+  getProductRecommendations,
 } = require("../../controllers/shop/products-controller");
 const { authMiddleware } = require("../../controllers/auth/auth-controller");
 
@@ -14,5 +15,6 @@ router.get("/get", getFilteredProducts);
 router.get("/get/:id", getProductDetails);
 router.post("/:id/viewed", authMiddleware, addRecentlyViewedProduct);
 router.get("/recently-viewed", authMiddleware, getRecentlyViewedProducts);
+router.get("/recommendations", getProductRecommendations);
 
 module.exports = router;
