@@ -96,7 +96,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   }
 
   useEffect(() => {
-    if (open && productDetails?._id) {
+    if (open && productDetails?._id && user?.id) {
       console.log("Recording recently viewed product:", productDetails._id);
       axios.post(
         `${API_BASE_URL}/api/shop/products/${productDetails._id}/viewed`,
@@ -105,11 +105,13 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       ).then((res) => {
         console.log("Recently viewed recorded successfully:", res.data);
       }).catch((err) => {
-        // Optionally handle error
-        console.error("Failed to record recently viewed product", err);
+        // Don't log error for 401 - just means user is not authenticated
+        if (err.response?.status !== 401) {
+          console.error("Failed to record recently viewed product", err);
+        }
       });
     }
-  }, [open, productDetails]);
+  }, [open, productDetails, user?.id]);
 
   useEffect(() => {
     if (productDetails !== null) dispatch(getReviews(productDetails?._id));

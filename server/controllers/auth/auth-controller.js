@@ -68,7 +68,12 @@ const loginUser = async (req, res) => {
       { expiresIn: "60m" }
     );
 
-    res.cookie("token", token, { httpOnly: true, secure: false }).json({
+    res.cookie("token", token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production', // true on production (Render)
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    }).json({
       success: true,
       message: "Logged in successfully",
       user: {
@@ -78,6 +83,7 @@ const loginUser = async (req, res) => {
         userName: checkUser.userName,
       },
     });
+    
   } catch (e) {
     console.log(e);
     res.status(500).json({
@@ -90,11 +96,16 @@ const loginUser = async (req, res) => {
 //logout
 
 const logoutUser = (req, res) => {
-  res.clearCookie("token").json({
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  }).json({
     success: true,
     message: "Logged out successfully!",
   });
 };
+
 
 //auth middleware
 const authMiddleware = async (req, res, next) => {

@@ -355,8 +355,15 @@ function RecentlyViewed({ handleGetProductDetails, handleAddtoCart }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    // Only fetch recently viewed products if user is authenticated
+    if (!isAuthenticated || !user?.id) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
@@ -374,12 +381,20 @@ function RecentlyViewed({ handleGetProductDetails, handleAddtoCart }) {
       })
       .catch((err) => {
         console.error("Recently viewed error:", err);
-        setError(err.message);
+        // Don't show error for 401 - just means user is not authenticated
+        if (err.response?.status !== 401) {
+          setError(err.message);
+        }
       })
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [isAuthenticated, user?.id]);
+
+  // Don't show the section if user is not authenticated
+  if (!isAuthenticated || !user?.id) {
+    return null;
+  }
 
   if (loading) {
     return (
