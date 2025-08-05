@@ -1,5 +1,5 @@
 # 🛍 MERN Ecommerce Application
-Live Preview :  https://mern-ecommerce-two-roan.vercel.app
+Live Preview :   https://mern-ecommerce-two-roan.vercel.app
 
 A full-featured *Ecommerce Web Application* built using the *MERN Stack (MongoDB, Express, React, Node.js)*. This project includes features like user authentication, product listings, admin panel, cart, checkout, and payment integration — making it ideal for learning or real-world deployment.
 
