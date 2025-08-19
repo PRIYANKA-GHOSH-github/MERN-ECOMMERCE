@@ -146,9 +146,10 @@ function ShoppingHome() {
   }, [productDetails]);
 
   useEffect(() => {
+    if (!featureImageList || featureImageList.length === 0) return;
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
-    }, 15000);
+    }, 3000);
 
     return () => clearInterval(timer);
   }, [featureImageList]);
@@ -186,7 +187,7 @@ function ShoppingHome() {
               key={index}
               className={`${
                 index === currentSlide ? "opacity-100" : "opacity-0"
-              } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-[1000]`}
+              } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-500`}
             />
           ))
         : null}
